@@ -1,0 +1,386 @@
+"use client";
+
+import styled from "@emotion/styled";
+import React, { Dispatch, useEffect, useMemo, useState } from "react";
+
+/* ============ types ============ */
+export type Marker = {
+  id: string;
+  xPct: number; // 0..1
+  yPct: number; // 0..1
+  color?: string;
+  url?: string; // có thể bỏ trống
+};
+
+export type IconPos = {
+  xPct: number; // 0..1
+  yPct: number; // 0..1
+  id?: string;
+};
+
+const FOOTER_TARGET_ID = "img5"; // id ảnh cần đè
+const FOOTER_SRC = "https://s3.yootek.com.vn/yootek/1756541117302-8786.png"; // TODO: thay URL thật
+const FOOTER_TOP_PCT = 0.86; // 94% chiều cao ảnh
+
+export type ImageItem = { id: string; src: string };
+
+type Props = {
+  images: ImageItem[];
+  initialMarkers?: Record<string, Marker[]>;
+  iconsByImg?: Record<string, IconPos[]>;
+  onAddMarker?: (imageId: string, m: Marker) => void;
+  onSelectMarker?: (imageId: string, m: Marker) => void;
+  markerHitSize?: number;
+  iconSize?: number;
+  iconSrc?: string;
+  debug?: boolean;
+  setSelected: Dispatch<any>;
+};
+
+export default function LongImagesMarkers({
+  images,
+  initialMarkers = {},
+  iconsByImg = {},
+  onAddMarker,
+  onSelectMarker,
+  markerHitSize = 100,
+  iconSize = 100,
+  iconSrc = "https://s3.yootek.com.vn/yootek/1756529700941-2481.gif",
+  debug = false,
+  setSelected,
+}: Props) {
+  // state: markers cho từng ảnh
+  const [markersByImg, setMarkersByImg] = useState<Record<string, Marker[]>>(
+    () =>
+      images.reduce(
+        (acc, it) => {
+          acc[it.id] = initialMarkers[it.id] ?? [];
+          return acc;
+        },
+        {} as Record<string, Marker[]>
+      )
+  );
+
+  useEffect(() => {
+    const setVh = () => {
+      document.documentElement.style.setProperty(
+        "--vh",
+        `${window.innerHeight * 0.01}px`
+      );
+    };
+    setVh();
+    window.addEventListener("resize", setVh);
+    window.addEventListener("orientationchange", setVh);
+    return () => {
+      window.removeEventListener("resize", setVh);
+      window.removeEventListener("orientationchange", setVh);
+    };
+  }, []);
+
+  const prettyByImg = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const it of images) {
+      const arr = markersByImg[it.id] ?? [];
+      out[it.id] = JSON.stringify(
+        arr.map((m) => ({
+          id: m.id,
+          x: round(m.xPct, 6),
+          y: round(m.yPct, 6),
+        })),
+        null,
+        2
+      );
+    }
+    return out;
+  }, [images, markersByImg]);
+
+  const clearMarkers = (imageId: string) =>
+    setMarkersByImg((prev) => ({ ...prev, [imageId]: [] }));
+
+  return (
+    <Stage>
+      {images.map((it) => {
+        const markers = markersByImg[it.id] ?? [];
+        const icons = iconsByImg[it.id] ?? [];
+        const pretty = prettyByImg[it.id] ?? "[]";
+
+        return (
+          <Section key={it.id}>
+            {debug && (
+              <Header>
+                <b>{it.id}</b>
+                <span style={{ flex: 1 }} />
+                <button onClick={() => clearMarkers(it.id)}>
+                  Clear markers
+                </button>
+                <button onClick={() => copy(pretty)}>Copy markers JSON</button>
+              </Header>
+            )}
+
+            <ImgWrap>
+              <img
+                src={it.src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                // onClick={handleImgClick(it.id)}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                  // cursor: "crosshair",
+                }}
+              />
+
+              {/* ICONS (chỉ hiển thị, lấy từ danh sách riêng xPct/yPct) */}
+              {icons.map((p, idx) => (
+                <IconImg
+                  key={p.id ?? `icon-${idx}`}
+                  src={iconSrc}
+                  alt="icon"
+                  draggable={false}
+                  style={{
+                    left: `${p.xPct * 100}%`,
+                    top: `${p.yPct * 100}%`,
+                    width: iconSize,
+                    height: iconSize,
+                    transform: "translate(-50%, -50%)", // neo đáy
+                    mixBlendMode: "multiply",
+                  }}
+                  // onClick={(ev) => {
+                  //   ev.stopPropagation();
+
+                  // }}
+                />
+              ))}
+
+              {/* MARKERS (ô vuông đen – không dùng iconSrc) */}
+              {markers.map((m, idx) => (
+                <MarkerBox
+                  key={m.id}
+                  style={{
+                    left: `${m.xPct * 100}%`,
+                    top: `${m.yPct * 100}%`,
+                    width: markerHitSize,
+                    height: markerHitSize,
+                    transform: "translate(-50%, -100%)", // neo đáy box
+                  }}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    setSelected(m);
+                    // onSelectMarker?.(it.id, m);
+                  }}
+                  title="marker"
+                />
+              ))}
+
+              {/* FOOTER: chỉ cho img5, đặt gần cuối ảnh, chừa mép trái/phải */}
+              {it.id === FOOTER_TARGET_ID && (
+                <FooterWrap
+                  style={{
+                    top: `${FOOTER_TOP_PCT * 100}%`,
+                    transform: "translateY(-100%)", // neo đáy footer vào vị trí top%
+                    padding: `0 9%`, // cách đều trái/phải
+                  }}
+                >
+                  <FooterImg src={FOOTER_SRC} alt="footer overlay" />
+                </FooterWrap>
+              )}
+            </ImgWrap>
+
+            {debug && (
+              <Panel>
+                <small>Markers JSON ({markers.length}):</small>
+                <pre>{pretty}</pre>
+              </Panel>
+            )}
+          </Section>
+        );
+      })}
+    </Stage>
+  );
+}
+
+/* ============ styles ============ */
+const FooterWrap = styled.div`
+  position: absolute;
+  z-index: 5; /* trên marker/icon */
+  left: 0;
+  right: 0; /* full chiều ngang ảnh */
+  box-sizing: border-box; /* để padding không làm tràn */
+  pointer-events: none; /* không chặn click phía dưới */
+`;
+const FooterImg = styled.img`
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+`;
+// const Stage = styled.div`
+//   width: 100vw;
+//   height: 100vh;
+//   overflow: auto;
+//   scrollbar-width: none;
+//   -ms-overflow-style: none;
+//   &::-webkit-scrollbar {
+//     display: none;
+//   }
+// `;
+
+const Stage = styled.div`
+  width: 100vw;
+  height: calc(var(--vh, 1vh) * 100);
+  overflow: auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const Section = styled.section`
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+`;
+
+const Header = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  button {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+`;
+
+const ImgWrap = styled.div`
+  position: relative;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+`;
+
+const MarkerBox = styled.div`
+  position: absolute;
+  z-index: 3; /* trên icon nếu muốn */
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  opacity: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+  &:hover {
+    transform: translate(-50%, -100%) scale(1.05);
+  }
+`;
+
+/** ICON hiển thị từ danh sách riêng */
+const IconImg = styled.img`
+  position: absolute;
+  z-index: 2;
+  pointer-events: auto;
+  user-select: none;
+  image-rendering: auto;
+  will-change: transform;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    opacity 120ms ease;
+  &:hover {
+    transform: translate(-50%, -100%) scale(1.05);
+  }
+`;
+
+const Panel = styled.div`
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  pre {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+`;
+
+/* ============ utils ============ */
+function round(n: number, digits = 4) {
+  const p = Math.pow(10, digits);
+  return Math.round(n * p) / p;
+}
+function clamp01(v: number) {
+  return Math.min(1, Math.max(0, v));
+}
+async function copy(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {}
+}
+
+{
+  /* DEBUG overlay (để lấy vị trí) */
+}
+{
+  /* {debug &&
+                markers.map((m, i) => (
+                  <React.Fragment key={`dbg-${m.id}`}>
+                    <Dot
+                      style={{
+                        left: `${m.xPct * 100}%`,
+                        top: `${m.yPct * 100}%`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    />
+                    <Label
+                      style={{
+                        left: `${m.xPct * 100}%`,
+                        top: `${m.yPct * 100}%`,
+                        transform: "translate(6px,-6px)",
+                      }}
+                    >
+                      #{i + 1} ({round(m.xPct, 3)}, {round(m.yPct, 3)})
+                    </Label>
+                  </React.Fragment>
+                ))} */
+}
+
+// const handleImgClick =
+//   (imageId: string) => (e: React.MouseEvent<HTMLImageElement>) => {
+//     const img = e.currentTarget;
+//     const rect = img.getBoundingClientRect();
+//     const xPct = clamp01((e.clientX - rect.left) / rect.width);
+//     const yPct = clamp01((e.clientY - rect.top) / rect.height);
+
+//     const m: Marker = {
+//       id: crypto.randomUUID(),
+//       xPct,
+//       yPct,
+//       // color: randomColor(),
+//     };
+
+//     console.log("%c[ADD]", "color:#1677ff", imageId, {
+//       id: m.id,
+//       xPct: round(xPct, 6),
+//       yPct: round(yPct, 6),
+//     });
+
+//     setMarkersByImg((prev) => ({
+//       ...prev,
+//       [imageId]: [...(prev[imageId] ?? []), m],
+//     }));
+//     onAddMarker?.(imageId, m);
+//   };
