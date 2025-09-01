@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: "Từ Pác Bó đến Ba Đình - Hành trình Độc lập",
     images: [
       {
-        url: "https://cdn.yoolife.com.vn/yootek/1756557844531-6269.jpg",
+        url: "https://cdn.yoolife.com.vn/yootek/1756731879760-9114.jpg",
         width: 1120, // điền đúng width thật của ảnh
         height: 630, // điền đúng height thật của ảnh
         alt: "Hành trình độc lập Việt Nam",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Hành trình độc lập Việt Nam",
     description: "Từ Pác Bó đến Ba Đình - Hành trình Độc lập",
-    images: ["https://cdn.yoolife.com.vn/yootek/1756557844531-6269.jpg"],
+    images: ["https://cdn.yoolife.com.vn/yootek/1756731879760-9114.jpg"],
   },
 };
 

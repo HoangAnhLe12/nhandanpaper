@@ -16,30 +16,24 @@ export default function LayoutPaper() {
     <Stage>
       <LongImagesMarkers
         images={[
-          // { id: "img1", src: "https://cdn.yoolife.com.vn/yootek/1756523655896-7001.jpg" },
           {
             id: "img1",
-            // src: "https://cdn.yoolife.com.vn/yootek/1756526680448-2347.webp",
-            src: "https://cdn.yoolife.com.vn/yootek/1756555226610-3693.webp",
+            src: "https://cdn.yoolife.com.vn/yootek/1756731333608-8650.jpg",
           },
           {
             id: "img2",
-            // src: "https://cdn.yoolife.com.vn/yootek/1756526694829-6150.webp",
             src: " https://cdn.yoolife.com.vn/yootek/1756555251269-1847.webp",
           },
           {
             id: "img3",
-            // src: "https://cdn.yoolife.com.vn/yootek/1756526706261-8072.webp",
             src: "https://cdn.yoolife.com.vn/yootek/1756555268990-4435.webp",
           },
           {
             id: "img4",
-            // src: "https://cdn.yoolife.com.vn/yootek/1756526717612-7336.webp",
             src: "https://cdn.yoolife.com.vn/yootek/1756555286749-9887.webp",
           },
           {
             id: "img5",
-            // src: "https://cdn.yoolife.com.vn/yootek/1756538472996-4469.webp",
             src: "https://cdn.yoolife.com.vn/yootek/1756555307481-2366.webp",
           },
         ]}
