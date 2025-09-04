@@ -1,9 +1,24 @@
 import styled from "@emotion/styled";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { useWindowSize } from "react-use";
+import ReactPlayer from "react-player";
 
 import { useIframe } from "./IframeContext";
+
+const isReactPlayerUrl = (u: string) => {
+  try {
+    const url = new URL(u);
+    const host = url.hostname.toLowerCase();
+    return (
+      host.includes("youtube.com") ||
+      host.includes("youtu.be") ||
+      host.includes("vimeo.com")
+    );
+  } catch {
+    return false;
+  }
+};
 
 const DisplayIframe = ({
   onClose,
@@ -18,17 +33,31 @@ const DisplayIframe = ({
 }) => {
   const [showOverlay, setShowOverlay] = useState(true);
   const [showPage, setShowPage] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const { width } = useWindowSize();
   const isMobile = width < 820;
 
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-  useEffect(() => {
-    setShowOverlay(true);
-  }, []);
-
-  const [progress, setProgress] = useState(0);
   const { setIframeVisible } = useIframe();
+
+  const useReactPlayer = useMemo(() => isReactPlayerUrl(url), [url]);
+
   useEffect(() => {
+    if (useReactPlayer) {
+      setShowOverlay(false);
+      setShowPage(true);
+      setIframeLoaded(true);
+      setIframeVisible(true);
+      return;
+    }
+    // Non-ReactPlayer case: hiển thị overlay và chạy progress
+    setShowOverlay(true);
+  }, [useReactPlayer, setIframeVisible]);
+
+  useEffect(() => {
+    if (useReactPlayer) return;
+
     setIframeVisible(true);
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -46,7 +75,7 @@ const DisplayIframe = ({
     }, 30);
 
     return () => clearInterval(interval);
-  }, [setIframeVisible, iframeLoaded]);
+  }, [setIframeVisible, iframeLoaded, useReactPlayer]);
 
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
@@ -54,7 +83,8 @@ const DisplayIframe = ({
 
   return ReactDOM.createPortal(
     <>
-      {showOverlay && (
+      {/* Overlay CHỈ hiện khi không dùng ReactPlayer */}
+      {showOverlay && !useReactPlayer && (
         <StyledDivOverlay
           className={
             !!backgroundUrl ? "overlay-countdown-custom" : "overlay-countdown"
@@ -103,7 +133,26 @@ const DisplayIframe = ({
       )}
 
       <div>
-        {iframeLoaded ? (
+        {useReactPlayer ? (
+          // ReactPlayer
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 201,
+              background: "#000",
+            }}
+          >
+            <ReactPlayer
+              src={url}
+              width="100%"
+              height="100%"
+              controls
+              playing
+            />
+          </div>
+        ) : // Non-ReactPlayer
+        iframeLoaded ? (
           <iframe
             src={url}
             style={{
@@ -139,32 +188,25 @@ const BackButton = styled.button`
   top: 80px;
   left: 30px;
   z-index: 202;
-
   display: flex;
   align-items: center;
   gap: 6px;
-
   padding: 8px 14px;
   border: none;
   border-radius: 12px;
-
   background: #ffffffcc;
   backdrop-filter: blur(6px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
   font-size: 14px;
   font-weight: 600;
   color: #195658;
   cursor: pointer;
-
   transition: all 0.2s ease;
-
   &:hover {
     background: #fff;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   }
-
   &:active {
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -173,19 +215,18 @@ const BackButton = styled.button`
 
 const StyledDivOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   background-repeat: no-repeat;
-  background-position: center;
-  background-position-y: 0%;
+  background-position: center 0%;
   background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #fff;
   z-index: 200;
+
   &.overlay-countdown {
     @media (max-width: 820px) {
       background-repeat: no-repeat;
@@ -196,7 +237,6 @@ const StyledDivOverlay = styled.div`
 
   &.overlay-countdown-custom {
     @media (max-width: 820px) {
-      // background-size: contain !important;
       background-size: cover !important;
       background-repeat: no-repeat;
       background-position: center;
@@ -213,20 +253,16 @@ const StyledDivOverlay = styled.div`
     align-items: center;
     border-radius: 50%;
   }
-
   .circular-gradient {
     transform: rotate(-90deg);
   }
-
   .background-circle {
     stroke: #d9d9d9;
   }
-
   .progress-circle {
     stroke-linecap: butt;
     transition: stroke-dashoffset 0.3s ease-out;
   }
-
   .progress-text {
     position: absolute;
     font-size: 1rem;
@@ -234,4 +270,5 @@ const StyledDivOverlay = styled.div`
     color: #8f8f8f;
   }
 `;
+
 export default DisplayIframe;

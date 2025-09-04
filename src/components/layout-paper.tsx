@@ -9,34 +9,41 @@ import DisplayIframe from "./iframe/DisplayIframe";
 
 export default function LayoutPaper() {
   const [selected, setSelected] = useState<any>(null);
-  const { width } = useWindowSize();
+  const { width, height } = useWindowSize();
   const isMobile = width <= 768;
 
+  const images = [
+    {
+      id: "img1",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975999045-2746.jpg",
+    },
+    {
+      id: "img2",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975092188-9536.jpg",
+    },
+    {
+      id: "img3",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975894325-1650.jpg",
+    },
+    {
+      id: "img4",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975913911-9679.jpg",
+    },
+    {
+      id: "img5",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975937919-7757.jpg",
+    },
+    {
+      id: "img6",
+      src: "https://cdn.yoolife.com.vn/yootek/1756975948514-3604.jpg",
+    },
+  ];
   return (
     <Stage>
       <LongImagesMarkers
-        images={[
-          {
-            id: "img1",
-            src: "https://cdn.yoolife.com.vn/yootek/1756731333608-8650.jpg",
-          },
-          {
-            id: "img2",
-            src: " https://cdn.yoolife.com.vn/yootek/1756555251269-1847.webp",
-          },
-          {
-            id: "img3",
-            src: "https://cdn.yoolife.com.vn/yootek/1756555268990-4435.webp",
-          },
-          {
-            id: "img4",
-            src: "https://cdn.yoolife.com.vn/yootek/1756555286749-9887.webp",
-          },
-          {
-            id: "img5",
-            src: "https://cdn.yoolife.com.vn/yootek/1756555307481-2366.webp",
-          },
-        ]}
+        widthWindow={width}
+        heightWindow={height}
+        images={images}
         initialMarkers={{
           img1: [
             {
@@ -56,39 +63,34 @@ export default function LayoutPaper() {
             },
           ],
           img4: [
-            // {
-            //   id: "e0559a2b-83ca-44c3-b633-1cb8ce01f7b4",
-            //   xPct: 0.114481,
-            //   yPct: 0.515,
-            //   url: "https://vr360.yoolife.vn/quang-truong-ba-dinh-zbdsc2149u275784",
-            // },
+            {
+              id: "adfb6f91-7edf-49c7-9320-dcf01d57eb72",
+              xPct: 0.583,
+              yPct: 0.943,
+              url: "https://vr360.yoolife.vn/nha-ong-cong-ngoc-kha-zac2624u275784",
+            },
           ],
           img5: [
-            // {
-            //   id: "45d2a8eb-c7c4-4e04-b1b4-507f478346af",
-            //   xPct: 0.874755,
-            //   yPct: 0.487669,
-            //   url: "https://vr360.yoolife.vn/quang-truong-ba-dinh-zbdsc2149u275784",
-            // },
             {
               id: "adfb6f91-7edf-49c7-9320-dcf01d57eb72",
               xPct: 0.85829,
-              yPct: 0.665,
-              url: "https://vr360.yoolife.vn/quang-truong-ba-dinh-zbdsc2149u275784",
+              yPct: 0.83,
+              url: "https://youtu.be/dyefeqChQZQ",
             },
           ],
         }}
         iconsByImg={{
           img1: [{ xPct: 0.554, yPct: 0.476 }],
           img3: [{ xPct: 0.828, yPct: 0.696 }],
-          // img4: [{ xPct: 0.1175, yPct: 0.498 }],
-          img5: [
-            // { xPct: 0.876, yPct: 0.474159 },
-            { xPct: 0.860938, yPct: 0.647 },
+          img4: [
+            // { xPct: 0.1175, yPct: 0.498 },
+            // { xPct: 0.8625, yPct: 0.82 },
+            { xPct: 0.583, yPct: 0.928 },
           ],
+          img5: [{ xPct: 0.860938, yPct: 0.807 }],
         }}
         setSelected={setSelected}
-        markerHitSize={100}
+        markerHitSize={isMobile ? 50 : 100}
         iconSize={isMobile ? 70 : 100}
         iconSrc="https://cdn.yoolife.com.vn/yootek/1756529700941-2481.gif"
       />
@@ -121,3 +123,36 @@ const Stage = styled.div`
     display: none;
   }
 `;
+
+// images={[
+//   {
+//     id: "img1",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756961351341-5069.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975999045-2746.jpg",
+//   },
+//   {
+//     id: "img2",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756961380247-2180.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975092188-9536.jpg",
+//   },
+//   {
+//     id: "img3",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756961392514-1546.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975894325-1650.jpg",
+//   },
+//   {
+//     id: "img4",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756961403092-1071.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975913911-9679.jpg",
+//   },
+//   {
+//     id: "img5",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756964246682-7516.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975937919-7757.jpg",
+//   },
+//   {
+//     id: "img6",
+//     // src: "https://cdn.yoolife.com.vn/yootek/1756964524672-8385.jpg",
+//     src: "https://cdn.yoolife.com.vn/yootek/1756975948514-3604.jpg",
+//   },
+// ]}
